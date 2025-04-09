@@ -7,6 +7,10 @@
 
 struct FInputActionValue;
 class AWeapon;
+class USpringArmComponent;
+class UCameraComponent;
+class UWidgetComponent;
+class UCombatComponent;
 UCLASS()
 class COOPSHOOTER_API AShooterCharacter : public ACharacter, public IPickupInterface
 {
@@ -19,7 +23,12 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void SetOverlappingWeapon(class AWeapon* Weapon) override;
+	virtual void PostInitializeComponents() override;
 
+	bool IsWeaponEquipped();
+	bool IsAiming();
+	FORCEINLINE float GetAO_Yaw() { return AO_Yaw; }
+	FORCEINLINE float GetAO_Pitch() { return AO_Pitch; }
 	//FORCEINLINE void SetOverlappingWeapon(AWeapon* Weapon) { OverlappingWeapon = Weapon; }
 
 protected:
@@ -44,22 +53,50 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	/** Look Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* CrouchAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* EKeyPressedAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AimAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+	void CrouchButtonPressed();
+	void EKeyPressed();
+	void AimButtonPressed();
+	void AimButtonReleased();
+
+	void AimOffset(float DeltaTime);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	class USpringArmComponent* CameraBoom;
+	USpringArmComponent* CameraBoom;
 
-	class UCameraComponent* FollowCamera;
+	UCameraComponent* FollowCamera;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UWidgetComponent* OverheadWidget;
+	UWidgetComponent* OverheadWidget;
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* OverlappingWeapon;
 
+	UPROPERTY(VisibleAnywhere)
+	UCombatComponent* Combat;
+
+	float AO_Yaw;
+	float AO_Pitch;
+	FRotator StartingAimRotation;
+
+
+	UFUNCTION(Server, Reliable)
+	void ServerEquipButtonPressed();
+
 	UFUNCTION()	
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+
 
 };
