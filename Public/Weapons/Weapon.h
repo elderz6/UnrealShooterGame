@@ -17,6 +17,7 @@ enum class EWeaponState : uint8
 class USphereComponent;
 class UWidgetComponent;
 class UAnimationAsset;
+class ABulletCasing;
 UCLASS()
 class COOPSHOOTER_API AWeapon : public AActor
 {
@@ -69,6 +70,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 	UAnimationAsset* FireAnimation;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ABulletCasing> CasingClass;
 
 	UFUNCTION()
 	void OnRep_WeaponState();
