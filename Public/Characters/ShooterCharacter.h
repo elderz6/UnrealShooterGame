@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/PickupInterface.h"
+#include "CoopShooter/ShooterTypes/TurningInPlace.h"
 #include "ShooterCharacter.generated.h"
 
 struct FInputActionValue;
@@ -27,8 +28,10 @@ public:
 
 	bool IsWeaponEquipped();
 	bool IsAiming();
+	AWeapon* GetEquippedWeapon();
 	FORCEINLINE float GetAO_Yaw() { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() { return AO_Pitch; }
+	FORCEINLINE ETurningInPlace GetTurningInPlace() { return TurningInPlace; }
 	//FORCEINLINE void SetOverlappingWeapon(AWeapon* Weapon) { OverlappingWeapon = Weapon; }
 
 protected:
@@ -88,9 +91,13 @@ private:
 	UCombatComponent* Combat;
 
 	float AO_Yaw;
+	float InterpAO_Yaw;
 	float AO_Pitch;
 	FRotator StartingAimRotation;
 
+	ETurningInPlace TurningInPlace;
+
+	void TurnInPlace(float DeltaTime);
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
