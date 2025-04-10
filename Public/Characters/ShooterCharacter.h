@@ -12,6 +12,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
 class UCombatComponent;
+class UAnimMontage;
 UCLASS()
 class COOPSHOOTER_API AShooterCharacter : public ACharacter, public IPickupInterface
 {
@@ -25,6 +26,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void SetOverlappingWeapon(class AWeapon* Weapon) override;
 	virtual void PostInitializeComponents() override;
+
+	//Montages
+	void PlayShootMontage(bool bAiming);
 
 	bool IsWeaponEquipped();
 	bool IsAiming();
@@ -64,7 +68,10 @@ protected:
 	UInputAction* EKeyPressedAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* AimAction;
+	UInputAction* AimAction;	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ShootAction;
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -72,6 +79,8 @@ protected:
 	void EKeyPressed();
 	void AimButtonPressed();
 	void AimButtonReleased();
+	void ShootButtonPressed();
+	void ShootButtonReleased();
 
 	void AimOffset(float DeltaTime);
 
@@ -96,6 +105,9 @@ private:
 	FRotator StartingAimRotation;
 
 	ETurningInPlace TurningInPlace;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	UAnimMontage* ShootMontage;
 
 	void TurnInPlace(float DeltaTime);
 

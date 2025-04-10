@@ -10,6 +10,7 @@
 #include "Weapons/Weapon.h"
 #include "ShooterComponents/CombatComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Characters/ShooterAnimInstance.h"
 
 AShooterCharacter::AShooterCharacter()
 {
@@ -94,6 +95,8 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(EKeyPressedAction, ETriggerEvent::Triggered, this, &ThisClass::EKeyPressed);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &ThisClass::AimButtonPressed);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &ThisClass::AimButtonReleased);
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &ThisClass::ShootButtonPressed);
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, this, &ThisClass::ShootButtonReleased);
 		//EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ThisClass::Attack);
 		//EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &ThisClass::Dodge);
 	}
@@ -164,6 +167,22 @@ void AShooterCharacter::AimButtonReleased()
 {
 	if (Combat)
 		Combat->SetAiming(false);
+}
+
+void AShooterCharacter::ShootButtonPressed()
+{
+	if (Combat)
+	{
+		Combat->ShootButtonPressed(true);
+	}
+}
+
+void AShooterCharacter::ShootButtonReleased()
+{
+	if (Combat)
+	{
+		Combat->ShootButtonPressed(false);
+	}
 }
 
 void AShooterCharacter::AimOffset(float DeltaTime)
@@ -256,6 +275,21 @@ void AShooterCharacter::ServerEquipButtonPressed_Implementation()
 	if (Combat)
 	{
 		Combat->EquipWeapon(OverlappingWeapon);
+	}
+}
+
+void AShooterCharacter::PlayShootMontage(bool bAiming)
+{
+	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ShootMontage)
+	{
+		AnimInstance->Montage_Play(ShootMontage);
+		FName SectionName;
+		SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+
+		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
 

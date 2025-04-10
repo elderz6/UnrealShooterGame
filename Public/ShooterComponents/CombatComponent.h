@@ -4,6 +4,8 @@
 #include "Components/ActorComponent.h"
 #include "CombatComponent.generated.h"
 
+#define TRACE_LENGTH 10000.f
+
 class AWeapon;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class COOPSHOOTER_API UCombatComponent : public UActorComponent
@@ -24,11 +26,31 @@ protected:
 
 	void SetAiming(bool bIsAiming);
 
+	void ShootButtonPressed(bool bPressed);
+
+	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
+
+	//Replication
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+
+	//
+	//
+
+	//
+	//RPCs
+	//
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(bool bIsAiming);
 
-	UFUNCTION()
-	void OnRep_EquippedWeapon();
+	UFUNCTION(Server, Reliable)
+	void ServerFire();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFire();
+
+	//
+	//
 
 private:	
 	class AShooterCharacter* Character;
@@ -44,4 +66,8 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float AimingWalkSpeed;
+
+	bool bShootButtonPressed;
+
+	FVector HitTarget;
 };
