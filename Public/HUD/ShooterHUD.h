@@ -21,7 +21,10 @@ public:
 	UTexture2D* CrosshairsTop;
 	UPROPERTY()
 	UTexture2D* CrosshairsBottom;
+
 	float CrosshairsSpread;
+
+	FLinearColor CrosshairsColor;
 };
 /**
  * 

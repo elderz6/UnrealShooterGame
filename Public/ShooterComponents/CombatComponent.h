@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "HUD/ShooterHUD.h"
 #include "CombatComponent.generated.h"
 
 #define TRACE_LENGTH 10000.f
@@ -84,8 +85,26 @@ private:
 	//HUD and Crosshair
 	float CrosshairVelocityFactor;
 	float CrosshairInAirFactor{ 0.f };
+	float CrosshairAimFactor;
+	float CrosshairShootingFactor;
+
+	FHUDPackage HUDPackage;
 	
 	UPROPERTY(Replicated)
 	FVector_NetQuantize HitTarget;
+
+	//Aim and FOV
+
+	float DefaultFOV;
+
+	float CurrentFOV;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float ZoomedFOV = 30.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float ZoomedInterpSpeed = 30.f;
+
+	void InterpFOV(float DeltaTime);
 
 };

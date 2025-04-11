@@ -77,26 +77,25 @@ void UShooterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		RightHandRotation = UKismetMathLibrary::FindLookAtRotation(
 			ShooterCharacter->GetHitTarget(), RightHandTransform.GetLocation());
 
-		FTransform MuzzleTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(
-			FName("MuzzleFlash"), ERelativeTransformSpace::RTS_World);
-		FVector MuzzleX(FRotationMatrix(MuzzleTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
+		//FTransform MuzzleTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(
+		//	FName("MuzzleFlash"), ERelativeTransformSpace::RTS_World);
+		//FVector MuzzleX(FRotationMatrix(MuzzleTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
 
-		DrawDebugLine(GetWorld(), 
-			MuzzleTransform.GetLocation(), 
-			MuzzleTransform.GetLocation() + MuzzleX * 1000.f,
-			FColor::Red);
-		DrawDebugLine(GetWorld(), 
-			MuzzleTransform.GetLocation(), 
-			ShooterCharacter->GetHitTarget(),
-			FColor::Blue);
+		//DrawDebugLine(GetWorld(), 
+		//	MuzzleTransform.GetLocation(), 
+		//	MuzzleTransform.GetLocation() + MuzzleX * 1000.f,
+		//	FColor::Red);
+		//DrawDebugLine(GetWorld(), 
+		//	MuzzleTransform.GetLocation(), 
+		//	ShooterCharacter->GetHitTarget(),
+		//	FColor::Blue);
 
-		FVector MuzzleLocation = MuzzleTransform.GetLocation();
-		FVector DirectionToTarget = (ShooterCharacter->GetHitTarget() - MuzzleLocation).GetSafeNormal();
+		//FVector MuzzleLocation = MuzzleTransform.GetLocation();
+		//FVector DirectionToTarget = (ShooterCharacter->GetHitTarget() - MuzzleLocation).GetSafeNormal();
 
-		FRotator RotationDiff = MuzzleTransform.GetRotation().Rotator() - FRotationMatrix::MakeFromX(DirectionToTarget).Rotator();
+		//FRotator RotationDiff = MuzzleTransform.GetRotation().Rotator() - FRotationMatrix::MakeFromX(DirectionToTarget).Rotator();
 
-		GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Emerald, 
-			FString::Printf(TEXT("Adjust P = %.2f Y = %.2f R = %.2f"), RotationDiff.Pitch, RotationDiff.Yaw, RotationDiff.Roll)
-		);
+		//GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Emerald, 
+		//	FString::Printf(TEXT("Adjust P = %.2f Y = %.2f R = %.2f"), RotationDiff.Pitch, RotationDiff.Yaw, RotationDiff.Roll));
 	}
 }

@@ -42,5 +42,5 @@ void AShooterHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, F
 		ViewportCenter.X - (TextureWidth / 2.f) + Spread.X,
 		ViewportCenter.Y - (TextureHeight / 2.f) + Spread.Y);
 
-	DrawTexture(Texture, TextureDrawPoint.X, TextureDrawPoint.Y, TextureWidth, TextureHeight, 0.f, 0.f, 1.f, 1.f);
+	DrawTexture(Texture, TextureDrawPoint.X, TextureDrawPoint.Y, TextureWidth, TextureHeight, 0.f, 0.f, 1.f, 1.f, HUDPackage.CrosshairsColor);
 }

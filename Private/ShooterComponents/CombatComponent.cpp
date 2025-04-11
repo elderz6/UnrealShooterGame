@@ -8,7 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "Controllers/ShooterPlayerController.h"
-#include "HUD/ShooterHUD.h"
+#include "Camera/CameraComponent.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -23,7 +23,11 @@ void UCombatComponent::BeginPlay()
 	Super::BeginPlay();
 
 	if (Character)
+	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+		DefaultFOV = Character->GetFollowCamera()->FieldOfView;
+		CurrentFOV = DefaultFOV;
+	}
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -38,17 +42,38 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	SetHUDCrosshairs(DeltaTime);
-	
+
 	if (Character && Character->IsLocallyControlled())
 	{
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
 		HitTarget = HitResult.ImpactPoint;
+		InterpFOV(DeltaTime);
 		//Not ideal replication but avoids the "curved bullets issue while also providing clarity wheter or not someone is aiming at you
 		ServerHitTarget(HitTarget);
 	}
-	
 }
+
+void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
+{
+	if (Character == nullptr || WeaponToEquip == nullptr) return;
+
+	EquippedWeapon = WeaponToEquip;
+	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+	if (HandSocket)
+		HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+
+	EquippedWeapon->SetOwner(Character);
+	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Character->bUseControllerRotationYaw = true;
+
+	ZoomedFOV = EquippedWeapon->ZoomedFOV;
+	DefaultFOV = EquippedWeapon->DefaultFOV;
+	CurrentFOV = DefaultFOV;
+	ZoomedInterpSpeed = EquippedWeapon->ZoomedInterpSpeed;
+}
+
 
 void UCombatComponent::SetAiming(bool bIsAiming)
 {
@@ -66,6 +91,7 @@ void UCombatComponent::ShootButtonPressed(bool bPressed)
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
 		ServerFire(HitResult.ImpactPoint);
+		CrosshairShootingFactor = 0.5f;
 	}
 }
 
@@ -99,8 +125,23 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 			ECollisionChannel::ECC_Visibility
 		);
 
+		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
+			HUDPackage.CrosshairsColor = FLinearColor::Red;
+		else 
+			HUDPackage.CrosshairsColor = FLinearColor::White;
+
 		if (!TraceHitResult.bBlockingHit)
+		{
 			TraceHitResult.ImpactPoint = End;
+			HitTarget = End;
+		}
+		else
+		{
+			HitTarget = TraceHitResult.ImpactPoint;
+		/*	DrawDebugSphere(
+				GetWorld(),TraceHitResult.ImpactPoint,
+				12.f,12,FColor::Red);*/
+		}
 	}
 }
 
@@ -113,7 +154,6 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	{
 		HUD = HUD == nullptr ? Cast<AShooterHUD>(Controller->GetHUD()) : HUD;
 
-		FHUDPackage HUDPackage;
 		if (HUD)
 		{
 			if (EquippedWeapon)
@@ -145,12 +185,36 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 			else
 				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 10.f);
 
-			HUDPackage.CrosshairsSpread = CrosshairVelocityFactor + CrosshairInAirFactor;
+			if (bAiming) CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.5f, DeltaTime, ZoomedInterpSpeed);
+			else CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, ZoomedInterpSpeed);
+
+			CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaTime, 20.f);
+
+			HUDPackage.CrosshairsSpread = 0.3f + CrosshairVelocityFactor + CrosshairInAirFactor - CrosshairAimFactor + CrosshairShootingFactor;
 
 			HUD->SetHUDPackage(HUDPackage);
 		}
 	}
 }
+
+
+
+void UCombatComponent::InterpFOV(float DeltaTime)
+{
+	if (bAiming)
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, ZoomedFOV, DeltaTime, ZoomedInterpSpeed);
+	else
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomedInterpSpeed);
+
+	if (Character && Character->GetFollowCamera())
+		Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
+
+}
+
+/*
+///////////////////////////////////////////////////////////////
+/////////////////////Server And Replications//////////////////
+*/
 
 void UCombatComponent::OnRep_EquippedWeapon()
 {
@@ -193,18 +257,6 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 	}
 }
 
-void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
-{
-	if (Character == nullptr || WeaponToEquip == nullptr) return;
-
-	EquippedWeapon = WeaponToEquip;
-	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
-	if (HandSocket)
-		HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
-
-	EquippedWeapon->SetOwner(Character);
-	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Character->bUseControllerRotationYaw = true;
-}
-
+/*
+///////////////////////////////////////////////////////////////
+*/

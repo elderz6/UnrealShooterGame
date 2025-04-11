@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "Interfaces/PickupInterface.h"
 #include "CoopShooter/ShooterTypes/TurningInPlace.h"
+#include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "ShooterCharacter.generated.h"
 
 struct FInputActionValue;
@@ -14,7 +15,7 @@ class UWidgetComponent;
 class UCombatComponent;
 class UAnimMontage;
 UCLASS()
-class COOPSHOOTER_API AShooterCharacter : public ACharacter, public IPickupInterface
+class COOPSHOOTER_API AShooterCharacter : public ACharacter, public IPickupInterface, public IInteractWithCrosshairsInterface
 {
 	GENERATED_BODY()
 
@@ -37,6 +38,7 @@ public:
 	FORCEINLINE float GetAO_Yaw() { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() { return AO_Pitch; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() { return TurningInPlace; }
+	FORCEINLINE UCameraComponent* GetFollowCamera() { return FollowCamera; }
 	//FORCEINLINE void SetOverlappingWeapon(AWeapon* Weapon) { OverlappingWeapon = Weapon; }
 
 protected:
@@ -89,6 +91,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	USpringArmComponent* CameraBoom;
 
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	UCameraComponent* FollowCamera;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
