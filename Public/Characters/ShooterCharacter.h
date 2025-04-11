@@ -29,6 +29,8 @@ public:
 	virtual void SetOverlappingWeapon(class AWeapon* Weapon) override;
 	virtual void PostInitializeComponents() override;
 
+	virtual void GetHit(const FVector& ImpactPoint, AActor* Hitter) override;
+
 	//Montages
 	void PlayShootMontage(bool bAiming);
 	void PlayHitReactMontage();

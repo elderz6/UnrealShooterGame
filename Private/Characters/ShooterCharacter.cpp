@@ -76,6 +76,11 @@ void AShooterCharacter::PostInitializeComponents()
 	}
 }
 
+void AShooterCharacter::GetHit(const FVector& ImpactPoint, AActor* Hitter)
+{
+	PlayHitReactMontage();
+}
+
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -307,6 +312,21 @@ void AShooterCharacter::PlayShootMontage(bool bAiming)
 		AnimInstance->Montage_Play(ShootMontage);
 		FName SectionName;
 		SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void AShooterCharacter::PlayHitReactMontage()
+{
+	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && HitReactMontage)
+	{
+		AnimInstance->Montage_Play(HitReactMontage);
+		FName SectionName;
+		SectionName = FName("Hit1");
 
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
