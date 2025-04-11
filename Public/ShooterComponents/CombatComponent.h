@@ -7,6 +7,8 @@
 #define TRACE_LENGTH 10000.f
 
 class AWeapon;
+class AShooterHUD;
+class AShooterPlayerController;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class COOPSHOOTER_API UCombatComponent : public UActorComponent
 {
@@ -15,6 +17,8 @@ class COOPSHOOTER_API UCombatComponent : public UActorComponent
 public:	
 	UCombatComponent();
 	friend class AShooterCharacter;
+	AShooterPlayerController* Controller;
+	AShooterHUD* HUD;
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -29,6 +33,8 @@ protected:
 	void ShootButtonPressed(bool bPressed);
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
+
+	void SetHUDCrosshairs(float DeltaTime);
 
 	//Replication
 	UFUNCTION()
@@ -49,6 +55,12 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
 
+	UFUNCTION(Server, Unreliable)
+	void ServerHitTarget(const FVector_NetQuantize& TraceHitTarget);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MultiCastHitTarget(const FVector_NetQuantize& TraceHitTarget);
+
 	//
 	//
 
@@ -68,5 +80,12 @@ private:
 	float AimingWalkSpeed;
 
 	bool bShootButtonPressed;
+
+	//HUD and Crosshair
+	float CrosshairVelocityFactor;
+	float CrosshairInAirFactor{ 0.f };
+	
+	UPROPERTY(Replicated)
+	FVector_NetQuantize HitTarget;
 
 };
