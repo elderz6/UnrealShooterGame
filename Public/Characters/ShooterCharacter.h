@@ -2,9 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Interfaces/PickupInterface.h"
 #include "CoopShooter/ShooterTypes/TurningInPlace.h"
+#include "Interfaces/PickupInterface.h"
 #include "Interfaces/InteractWithCrosshairsInterface.h"
+#include "Interfaces/HitInterface.h"
 #include "ShooterCharacter.generated.h"
 
 struct FInputActionValue;
@@ -15,7 +16,7 @@ class UWidgetComponent;
 class UCombatComponent;
 class UAnimMontage;
 UCLASS()
-class COOPSHOOTER_API AShooterCharacter : public ACharacter, public IPickupInterface, public IInteractWithCrosshairsInterface
+class COOPSHOOTER_API AShooterCharacter : public ACharacter, public IPickupInterface, public IInteractWithCrosshairsInterface, public IHitInterface
 {
 	GENERATED_BODY()
 
@@ -30,6 +31,7 @@ public:
 
 	//Montages
 	void PlayShootMontage(bool bAiming);
+	void PlayHitReactMontage();
 
 	bool IsWeaponEquipped();
 	bool IsAiming();
@@ -113,7 +115,15 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	UAnimMontage* ShootMontage;
 
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	UAnimMontage* HitReactMontage;
+
+	UPROPERTY(EditAnywhere)
+	float CameraThreshold = 200.f;
+
 	void TurnInPlace(float DeltaTime);
+
+	void HideCharacterIfCameraClose();
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
