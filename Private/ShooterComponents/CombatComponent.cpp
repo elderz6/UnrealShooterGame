@@ -9,6 +9,7 @@
 #include "DrawDebugHelpers.h"
 #include "Controllers/ShooterPlayerController.h"
 #include "Camera/CameraComponent.h"
+#include "TimerManager.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -72,6 +73,10 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	DefaultFOV = EquippedWeapon->DefaultFOV;
 	CurrentFOV = DefaultFOV;
 	ZoomedInterpSpeed = EquippedWeapon->ZoomedInterpSpeed;
+
+	bAutomatic = EquippedWeapon->bAutomatic;
+	FireDelay = EquippedWeapon->FireDelay;
+
 }
 
 
@@ -88,10 +93,18 @@ void UCombatComponent::ShootButtonPressed(bool bPressed)
 	bShootButtonPressed = bPressed;
 	if (bShootButtonPressed)
 	{
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
-		ServerFire(HitResult.ImpactPoint);
+		Shoot();
+	}
+}
+
+void UCombatComponent::Shoot()
+{
+	if (bCanFire)
+	{
+		bCanFire = false;
+		ServerFire(HitTarget);
 		CrosshairShootingFactor = 0.5f;
+		StartFireTimer();
 	}
 }
 
@@ -213,6 +226,21 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 	if (Character && Character->GetFollowCamera())
 		Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
 
+}
+
+void UCombatComponent::StartFireTimer()
+{
+	if (Character == nullptr) return;
+	Character->GetWorldTimerManager().SetTimer(FireTimer, this, &ThisClass::FireTimerFinished, FireDelay);
+}
+
+void UCombatComponent::FireTimerFinished()
+{
+	bCanFire = true;
+	if (bShootButtonPressed && bAutomatic)
+	{
+		Shoot();
+	}
 }
 
 /*

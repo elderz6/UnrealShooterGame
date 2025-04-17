@@ -9,12 +9,19 @@
 #include "Net/UnrealNetwork.h"
 #include "Weapons/Weapon.h"
 #include "ShooterComponents/CombatComponent.h"
+#include "ShooterComponents/AttributeComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Characters/ShooterAnimInstance.h"
+#include "CoopShooter/CoopShooter.h"
+#include "Controllers/ShooterPlayerController.h"
+#include "HUD/CharacterOverlay.h"
+#include "GameMode/ShooterGameMode.h"
+#include "TimerManager.h"
 
 AShooterCharacter::AShooterCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh());
@@ -28,8 +35,10 @@ AShooterCharacter::AShooterCharacter()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Exponential;
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECR_Block);
 
@@ -38,6 +47,9 @@ AShooterCharacter::AShooterCharacter()
 
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
 	Combat->SetIsReplicated(true);
+
+	Attributes = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attribute Component"));
+	Attributes->SetIsReplicated(true);
 
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	NetUpdateFrequency = 66.f;
@@ -54,32 +66,30 @@ void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	ShooterPlayerController = Cast<AShooterPlayerController>(GetController());
+	if (ShooterPlayerController)
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>
-			(PlayerController->GetLocalPlayer()))
+			(ShooterPlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(ShooterMappingContext, 0);
 		}
+		ShooterPlayerController->InitializePlayerOverlay(
+			Attributes->GetHealthPercent(),
+			Attributes->GetMaxHealth(),
+			Attributes->GetHealth()
+		);
+		CharacterOverlay = ShooterPlayerController->GetShooterHUD()->CharacterOverlay;
+	}
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 	}
 
 	Tags.Add(FName("ShooterCharacter"));
 }
 
-void AShooterCharacter::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-	if (Combat)
-	{
-		Combat->Character = this;
-	}
-}
-
-void AShooterCharacter::GetHit(const FVector& ImpactPoint, AActor* Hitter)
-{
-	PlayHitReactMontage();
-}
 
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -88,6 +98,79 @@ void AShooterCharacter::Tick(float DeltaTime)
 	HideCharacterIfCameraClose();
 }
 
+void AShooterCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	if (Combat)
+		Combat->Character = this;
+	if (Attributes)
+		Attributes->Character = this;
+}
+
+/*
+////////////////////////Damage and death handling/////////////////////
+*/
+void AShooterCharacter::GetHit(const FVector& ImpactPoint, AActor* Hitter)
+{
+	PlayHitReactMontage();
+}
+
+void AShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
+{
+	if (Attributes)
+	{
+		Attributes->HandleHealthChange(Damage);
+		UpdateHUDHealth(); 
+		PlayHitReactMontage();
+
+		if (Attributes->IsDead())
+		{
+			AShooterGameMode* ShooterGameMode = GetWorld()->GetAuthGameMode<AShooterGameMode>();
+			if (ShooterGameMode)
+			{
+				AShooterPlayerController* AttackerController = Cast<AShooterPlayerController>(InstigatorController);
+				ShooterGameMode->PlayerEliminated(this, ShooterPlayerController, AttackerController);
+			}
+		}
+		
+	}
+}
+
+void AShooterCharacter::UpdateHUDHealth()
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetHealthBarPercent(Attributes->GetHealthPercent());
+		CharacterOverlay->SetCurrentHealthText(Attributes->GetHealth());
+	}
+}
+
+void AShooterCharacter::Eliminated()
+{
+	MulticastEliminated();
+	GetWorldTimerManager().SetTimer(RespawnTimer, this, 
+		&ThisClass::RespawnTimerFinished, RespawnDelay);
+}
+
+
+void AShooterCharacter::MulticastEliminated_Implementation()
+{
+	bIsEliminated = true;
+	PlayElimMontage();
+}
+
+void AShooterCharacter::RespawnTimerFinished()
+{
+	AShooterGameMode* ShooterGameMode = GetWorld()->GetAuthGameMode<AShooterGameMode>();
+	if (ShooterGameMode)
+	{
+		ShooterGameMode->RequestRespawn(this, Controller);
+	}
+}
+
+/*
+////////////////////////Enhanced Input Setup/////////////////////
+*/
 void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -179,19 +262,18 @@ void AShooterCharacter::AimButtonReleased()
 void AShooterCharacter::ShootButtonPressed()
 {
 	if (Combat)
-	{
 		Combat->ShootButtonPressed(true);
-	}
 }
 
 void AShooterCharacter::ShootButtonReleased()
 {
 	if (Combat)
-	{
 		Combat->ShootButtonPressed(false);
-	}
 }
 
+/*
+////////////////////////Aim and camera calculations/////////////////////
+*/
 void AShooterCharacter::AimOffset(float DeltaTime)
 {
 	if (Combat && Combat->EquippedWeapon == nullptr) return;
@@ -235,11 +317,11 @@ void AShooterCharacter::AimOffset(float DeltaTime)
 
 void AShooterCharacter::TurnInPlace(float DeltaTime)
 {
-	if (AO_Yaw > 90.f)
+	if (AO_Yaw > 45.f)
 	{
 		TurningInPlace = ETurningInPlace::ETIP_Right;
 	}
-	else if (AO_Yaw < -90.f)
+	else if (AO_Yaw < -45.f)
 	{
 		TurningInPlace = ETurningInPlace::ETIP_Left;
 	}
@@ -273,6 +355,10 @@ void AShooterCharacter::HideCharacterIfCameraClose()
 	}
 }
 
+/*
+////////////////////////Replication/////////////////////
+*/
+
 void AShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
 	if (IsLocallyControlled() && Weapon == nullptr && OverlappingWeapon)
@@ -283,8 +369,6 @@ void AShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 	if(IsLocallyControlled() && OverlappingWeapon)
 		OverlappingWeapon->ShowPickupWidget(true);
 }
-
-
 
 void AShooterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
@@ -302,6 +386,9 @@ void AShooterCharacter::ServerEquipButtonPressed_Implementation()
 	}
 }
 
+/*
+////////////////////////Montages/////////////////////
+*/
 void AShooterCharacter::PlayShootMontage(bool bAiming)
 {
 	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
@@ -331,6 +418,19 @@ void AShooterCharacter::PlayHitReactMontage()
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
+
+void AShooterCharacter::PlayElimMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ElimMontage)
+	{
+		AnimInstance->Montage_Play(ElimMontage);
+	}
+}
+
+/*
+////////////////////////Getters/////////////////////
+*/
 
 bool AShooterCharacter::IsWeaponEquipped()
 {

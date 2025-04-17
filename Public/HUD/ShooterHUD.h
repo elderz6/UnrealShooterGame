@@ -29,16 +29,26 @@ public:
 /**
  * 
  */
+class UCharacterOverlay;
+class UUserWidget;
 UCLASS()
 class COOPSHOOTER_API AShooterHUD : public AHUD
 {
 	GENERATED_BODY()
 
 public:
-	virtual void DrawHUD() override;
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	TSubclassOf<UUserWidget> CharacterOverlayClass;
+	UCharacterOverlay* CharacterOverlay;
 
+	virtual void DrawHUD() override;
 	bool TexturesAreValid();
+
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& Package) { HUDPackage = Package; }
+
+protected:
+	virtual void BeginPlay() override;
+	void AddCharacterOverlay();
 	
 private:
 	UPROPERTY()

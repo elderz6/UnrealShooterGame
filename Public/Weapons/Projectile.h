@@ -19,6 +19,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void Destroyed() override;
 
+	FORCEINLINE float GetDamage() { return Damage; }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -42,4 +44,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	USoundCue* ImpactSound;
+
+	UPROPERTY(EditAnywhere)
+	float Damage = 20.f;
 };

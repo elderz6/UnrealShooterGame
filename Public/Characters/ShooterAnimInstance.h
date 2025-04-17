@@ -68,4 +68,7 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Character")
 	FRotator RightHandRotation;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Character")
+	bool bIsEliminated;
 };

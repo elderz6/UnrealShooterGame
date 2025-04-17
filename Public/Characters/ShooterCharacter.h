@@ -14,7 +14,10 @@ class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
 class UCombatComponent;
+class UAttributeComponent;
 class UAnimMontage;
+class AShooterPlayerController;
+class UCharacterOverlay;
 UCLASS()
 class COOPSHOOTER_API AShooterCharacter : public ACharacter, public IPickupInterface, public IInteractWithCrosshairsInterface, public IHitInterface
 {
@@ -31,9 +34,21 @@ public:
 
 	virtual void GetHit(const FVector& ImpactPoint, AActor* Hitter) override;
 
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+		AController* InstigatorController, AActor* DamageCauser);
+
+	void UpdateHUDHealth();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastEliminated();
+
+	void Eliminated();
+
 	//Montages
 	void PlayShootMontage(bool bAiming);
 	void PlayHitReactMontage();
+	void PlayElimMontage();
 
 	bool IsWeaponEquipped();
 	bool IsAiming();
@@ -43,6 +58,7 @@ public:
 	FORCEINLINE float GetAO_Pitch() { return AO_Pitch; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() { return TurningInPlace; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() { return FollowCamera; }
+	FORCEINLINE bool GetIsEliminated() { return bIsEliminated; }
 	//FORCEINLINE void SetOverlappingWeapon(AWeapon* Weapon) { OverlappingWeapon = Weapon; }
 
 protected:
@@ -91,6 +107,7 @@ protected:
 
 	void AimOffset(float DeltaTime);
 
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	USpringArmComponent* CameraBoom;
@@ -107,6 +124,13 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UCombatComponent* Combat;
 
+	UPROPERTY(VisibleAnywhere)
+	UAttributeComponent* Attributes;
+
+	AShooterPlayerController* ShooterPlayerController;
+
+	UCharacterOverlay* CharacterOverlay;
+
 	float AO_Yaw;
 	float InterpAO_Yaw;
 	float AO_Pitch;
@@ -120,8 +144,20 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	UAnimMontage* HitReactMontage;
 
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	UAnimMontage* ElimMontage;
+
 	UPROPERTY(EditAnywhere)
 	float CameraThreshold = 200.f;
+
+	bool bIsEliminated = false;
+
+	UPROPERTY(EditDefaultsOnly)
+	float RespawnDelay = 3.f;
+
+	FTimerHandle RespawnTimer;
+
+	void RespawnTimerFinished();
 
 	void TurnInPlace(float DeltaTime);
 

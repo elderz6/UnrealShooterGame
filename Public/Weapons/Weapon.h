@@ -58,6 +58,14 @@ public:
 	UPROPERTY(EditAnywhere)
 	float ZoomedInterpSpeed = 30.f;
 
+	//Automatic fire
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	bool bAutomatic = true;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float FireDelay = 0.15f;
+
 
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }

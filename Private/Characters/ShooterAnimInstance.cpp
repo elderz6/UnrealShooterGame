@@ -34,6 +34,7 @@ void UShooterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bIsCrouched = ShooterCharacter->bIsCrouched;
 	bAiming = ShooterCharacter->IsAiming();
 	TurningInPlace = ShooterCharacter->GetTurningInPlace();
+	bIsEliminated = ShooterCharacter->GetIsEliminated();
 
 	FRotator AimRotation = ShooterCharacter->GetBaseAimRotation();
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(ShooterCharacter->GetVelocity());
