@@ -34,6 +34,7 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	virtual void GetHit(const FVector& ImpactPoint, AActor* Hitter) override;
+	virtual void PossessedBy(AController* PlayerController)override;
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,

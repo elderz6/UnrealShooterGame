@@ -117,6 +117,27 @@ void AShooterCharacter::GetHit(const FVector& ImpactPoint, AActor* Hitter)
 	PlayHitReactMontage();
 }
 
+void AShooterCharacter::PossessedBy(AController* PlayerController)
+{
+	Super::PossessedBy(PlayerController);
+
+	AShooterPlayerController* ShooterController = Cast<AShooterPlayerController>(PlayerController);
+	if (ShooterController)
+	{
+		ShooterPlayerController = ShooterController;
+
+		if(ShooterController->GetShooterHUD() && ShooterController->GetShooterHUD()->CharacterOverlay)
+			CharacterOverlay = ShooterController->GetShooterHUD()->CharacterOverlay;
+
+		ShooterController->InitializePlayerOverlay(
+			Attributes->GetHealthPercent(),
+			Attributes->GetMaxHealth(),
+			Attributes->GetHealth()
+		);
+	}
+	UpdateHUDHealth();
+}
+
 void AShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
 	if (Attributes)
@@ -134,7 +155,6 @@ void AShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 				ShooterGameMode->PlayerEliminated(this, ShooterPlayerController, AttackerController);
 			}
 		}
-		
 	}
 }
 
@@ -152,6 +172,9 @@ void AShooterCharacter::Eliminated()
 	MulticastEliminated();
 	GetWorldTimerManager().SetTimer(RespawnTimer, this, 
 		&ThisClass::RespawnTimerFinished, RespawnDelay);
+
+	if (Combat && Combat->EquippedWeapon)
+		Combat->EquippedWeapon->Dropped();
 }
 
 
@@ -168,6 +191,14 @@ void AShooterCharacter::MulticastEliminated_Implementation()
 		DynamicDissolveMaterial->SetScalarParameterValue(TEXT("Glow"), 200.f);
 	}
 	StartDissolve();
+
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	if (ShooterPlayerController)
+		DisableInput(ShooterPlayerController);
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AShooterCharacter::UpdateDissolveMaterial(float DissolveValue)
