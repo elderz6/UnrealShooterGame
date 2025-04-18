@@ -51,6 +51,8 @@ AShooterCharacter::AShooterCharacter()
 	Attributes = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attribute Component"));
 	Attributes->SetIsReplicated(true);
 
+	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
+
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
@@ -157,6 +159,34 @@ void AShooterCharacter::MulticastEliminated_Implementation()
 {
 	bIsEliminated = true;
 	PlayElimMontage();
+
+	if (DissolveMaterialInstance)
+	{
+		DynamicDissolveMaterial = UMaterialInstanceDynamic::Create(DissolveMaterialInstance, this);
+		GetMesh()->SetMaterial(0, DynamicDissolveMaterial);
+		DynamicDissolveMaterial->SetScalarParameterValue(TEXT("Dissolve"), -0.6f);
+		DynamicDissolveMaterial->SetScalarParameterValue(TEXT("Glow"), 200.f);
+	}
+	StartDissolve();
+}
+
+void AShooterCharacter::UpdateDissolveMaterial(float DissolveValue)
+{
+	if (DynamicDissolveMaterial)
+	{
+		DynamicDissolveMaterial->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue);
+	}
+}
+
+void AShooterCharacter::StartDissolve()
+{
+	DissolveTrack.BindDynamic(this, &ThisClass::UpdateDissolveMaterial);
+
+	if (DissolveCurve && DissolveTimeline)
+	{
+		DissolveTimeline->AddInterpFloat(DissolveCurve, DissolveTrack);
+		DissolveTimeline->Play();
+	}
 }
 
 void AShooterCharacter::RespawnTimerFinished()

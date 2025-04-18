@@ -6,6 +6,7 @@
 #include "Interfaces/PickupInterface.h"
 #include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "Interfaces/HitInterface.h"
+#include "Components/TimelineComponent.h"
 #include "ShooterCharacter.generated.h"
 
 struct FInputActionValue;
@@ -156,6 +157,25 @@ private:
 	float RespawnDelay = 3.f;
 
 	FTimerHandle RespawnTimer;
+
+	UPROPERTY(VisibleAnywhere)
+	UTimelineComponent* DissolveTimeline;
+
+	FOnTimelineFloat DissolveTrack;
+
+	UPROPERTY(EditAnywhere)
+	UCurveFloat* DissolveCurve;
+
+	UPROPERTY(VisibleAnywhere, Category = "Elimination")
+	UMaterialInstanceDynamic* DynamicDissolveMaterial;
+
+	UPROPERTY(EditAnywhere, Category = "Elimination")
+	UMaterialInstance* DissolveMaterialInstance;
+
+	UFUNCTION()
+	void UpdateDissolveMaterial(float DissolveValue);
+
+	void StartDissolve();
 
 	void RespawnTimerFinished();
 
