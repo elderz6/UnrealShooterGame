@@ -34,3 +34,9 @@ void UCharacterOverlay::SetScoreText(float Score)
 		ScoreAmount_Text->SetText(Text);
 	}
 }
+
+void UCharacterOverlay::NativeOnInitialized()
+{
+	Super::NativeOnInitialized();
+	SetScoreText(0.f);
+}

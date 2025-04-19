@@ -191,5 +191,5 @@ private:
 	UFUNCTION()	
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
-
+	virtual void OnRep_PlayerState() override;
 };

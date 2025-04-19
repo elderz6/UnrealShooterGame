@@ -35,8 +35,8 @@ public:
 	UTextBlock* ScoreAmount_Text;
 
 protected:
+	virtual void NativeOnInitialized() override;
 
 private:
-
 	
 };

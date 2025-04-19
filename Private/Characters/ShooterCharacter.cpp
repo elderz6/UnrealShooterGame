@@ -17,6 +17,7 @@
 #include "HUD/CharacterOverlay.h"
 #include "GameMode/ShooterGameMode.h"
 #include "TimerManager.h"
+#include "GameFramework/PlayerState.h"
 
 AShooterCharacter::AShooterCharacter()
 {
@@ -445,6 +446,13 @@ void AShooterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 		OverlappingWeapon->ShowPickupWidget(true);
 	if (LastWeapon)
 		LastWeapon->ShowPickupWidget(false);
+}
+
+void AShooterCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	UpdateHUDScore(GetPlayerState()->GetScore());
+	
 }
 
 void AShooterCharacter::ServerEquipButtonPressed_Implementation()
