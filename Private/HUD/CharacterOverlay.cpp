@@ -25,3 +25,12 @@ void UCharacterOverlay::SetMaxHealthText(int32 Value)
 		MaxHealth_Text->SetText(Text);
 	}
 }
+
+void UCharacterOverlay::SetScoreText(float Score)
+{
+	if (ScoreAmount_Text)
+	{
+		FText Text = FText::FromString(FString::Printf(TEXT("%d"), FMath::CeilToInt(Score)));
+		ScoreAmount_Text->SetText(Text);
+	}
+}

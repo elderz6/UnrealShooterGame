@@ -167,6 +167,14 @@ void AShooterCharacter::UpdateHUDHealth()
 	}
 }
 
+void AShooterCharacter::UpdateHUDScore(float Score)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetScoreText(Score);
+	}
+}
+
 void AShooterCharacter::Eliminated()
 {
 	MulticastEliminated();

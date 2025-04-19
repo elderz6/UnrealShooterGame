@@ -41,6 +41,7 @@ public:
 		AController* InstigatorController, AActor* DamageCauser);
 
 	void UpdateHUDHealth();
+	void UpdateHUDScore(float Score);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastEliminated();

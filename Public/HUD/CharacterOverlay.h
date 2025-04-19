@@ -19,6 +19,7 @@ public:
 
 	void SetCurrentHealthText(int32 Value);
 	void SetMaxHealthText(int32 Value);
+	void SetScoreText(float Score);
 
 
 	UPROPERTY(meta = (BindWidget))
@@ -29,6 +30,9 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* MaxHealth_Text;
+	
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* ScoreAmount_Text;
 
 protected:
 
