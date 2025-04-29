@@ -18,7 +18,11 @@ class COOPSHOOTER_API UCombatComponent : public UActorComponent
 public:	
 	UCombatComponent();
 	friend class AShooterCharacter;
+
+	UPROPERTY()
 	AShooterPlayerController* Controller;
+
+	UPROPERTY()
 	AShooterHUD* HUD;
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

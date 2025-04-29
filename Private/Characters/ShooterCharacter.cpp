@@ -176,6 +176,14 @@ void AShooterCharacter::UpdateHUDScore(float Score)
 	}
 }
 
+void AShooterCharacter::UpdateHUDDefeat(int32 Defeat)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetDefeatText(Defeat);
+	}
+}
+
 void AShooterCharacter::Eliminated()
 {
 	MulticastEliminated();

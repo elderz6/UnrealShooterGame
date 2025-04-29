@@ -15,6 +15,11 @@ void AShooterGameMode::PlayerEliminated(AShooterCharacter* ElimCharacter, AShoot
 		Attacker->AddToScore(1.f);
 	}
 
+	if (Victim)
+	{
+		Victim->AddToDefeats(1);
+	}
+
 
 	if (ElimCharacter)
 	{

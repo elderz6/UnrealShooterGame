@@ -32,6 +32,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:	
+	UPROPERTY()
 	AShooterCharacter* Character;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Actor Attributes")

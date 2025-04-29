@@ -35,8 +35,18 @@ void UCharacterOverlay::SetScoreText(float Score)
 	}
 }
 
+void UCharacterOverlay::SetDefeatText(int32 Defeat)
+{
+	if (DefeatAmount_Text)
+	{
+		FText Text = FText::FromString(FString::Printf(TEXT("%d"), Defeat));
+		DefeatAmount_Text->SetText(Text);
+	}
+}
+
 void UCharacterOverlay::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 	SetScoreText(0.f);
+	SetDefeatText(0);
 }

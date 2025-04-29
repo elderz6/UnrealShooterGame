@@ -20,6 +20,7 @@ public:
 	void SetCurrentHealthText(int32 Value);
 	void SetMaxHealthText(int32 Value);
 	void SetScoreText(float Score);
+	void SetDefeatText(int32 Defeat);
 
 
 	UPROPERTY(meta = (BindWidget))
@@ -33,6 +34,12 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* ScoreAmount_Text;
+	
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* DefeatAmount_Text;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* AmmoAmount_Text;
 
 protected:
 	virtual void NativeOnInitialized() override;

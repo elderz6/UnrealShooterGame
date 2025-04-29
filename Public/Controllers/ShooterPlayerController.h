@@ -22,6 +22,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UPROPERTY()
 	AShooterHUD* ShooterHUD;
 
 };

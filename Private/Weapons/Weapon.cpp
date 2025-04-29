@@ -53,6 +53,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AWeapon, WeaponState);
+	DOREPLIFETIME(AWeapon, Ammo);
 }
 
 void AWeapon::Fire(const FVector& HitTarget)
@@ -130,6 +131,12 @@ void AWeapon::SetWeaponState(EWeaponState State)
 	}
 }
 
+void AWeapon::SpendRound()
+{
+	--Ammo;
+
+}
+
 void AWeapon::OnRep_WeaponState()
 {
 	switch (WeaponState)
@@ -152,6 +159,10 @@ void AWeapon::OnRep_WeaponState()
 	default:
 		break;
 	}
+}
+
+void AWeapon::OnRep_Ammo()
+{
 }
 
 void AWeapon::ShowPickupWidget(bool bShowWidget)

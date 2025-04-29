@@ -42,6 +42,7 @@ public:
 
 	void UpdateHUDHealth();
 	void UpdateHUDScore(float Score);
+	void UpdateHUDDefeat(int32 Defeat);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastEliminated();
@@ -130,8 +131,10 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UAttributeComponent* Attributes;
 
+	UPROPERTY()
 	AShooterPlayerController* ShooterPlayerController;
 
+	UPROPERTY()
 	UCharacterOverlay* CharacterOverlay;
 
 	float AO_Yaw;
