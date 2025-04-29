@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Weapons/WeaponTypes.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -19,6 +20,7 @@ class UWidgetComponent;
 class UAnimationAsset;
 class ABulletCasing;
 class UTexture2D;
+class AShooterCharacter;
 UCLASS()
 class COOPSHOOTER_API AWeapon : public AActor
 {
@@ -28,11 +30,14 @@ public:
 	AWeapon();
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void OnRep_Owner() override;
 
 	virtual void Fire(const FVector& HitTarget);
 
 	void ShowPickupWidget(bool bShowWidget);
 	void SetWeaponState(EWeaponState State);
+
+	void CallUpdateHUDAmmo();
 
 	void Dropped();
 
@@ -71,6 +76,8 @@ public:
 
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+	FORCEINLINE bool IsEmpty() const { return Ammo <= 0; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -115,6 +122,12 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	int32 MagCapacity;
+
+	UPROPERTY()
+	AShooterCharacter* OwnerCharacter;
+
+	UPROPERTY(EditAnywhere)
+	EWeaponType WeaponType;
 
 	UFUNCTION()
 	void SpendRound();

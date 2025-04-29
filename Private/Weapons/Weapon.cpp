@@ -56,6 +56,17 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	DOREPLIFETIME(AWeapon, Ammo);
 }
 
+void AWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	
+	if (Owner == nullptr) 
+		OwnerCharacter = nullptr;
+	else
+		CallUpdateHUDAmmo();
+
+}
+
 void AWeapon::Fire(const FVector& HitTarget)
 {
 	if (FireAnimation)
@@ -81,6 +92,8 @@ void AWeapon::Fire(const FVector& HitTarget)
 			}
 		}
 	}
+
+	SpendRound();
 }
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -133,8 +146,8 @@ void AWeapon::SetWeaponState(EWeaponState State)
 
 void AWeapon::SpendRound()
 {
-	--Ammo;
-
+	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
+	CallUpdateHUDAmmo();
 }
 
 void AWeapon::OnRep_WeaponState()
@@ -163,6 +176,16 @@ void AWeapon::OnRep_WeaponState()
 
 void AWeapon::OnRep_Ammo()
 {
+	CallUpdateHUDAmmo();
+}
+
+void AWeapon::CallUpdateHUDAmmo()
+{
+	OwnerCharacter = OwnerCharacter == nullptr ? Cast<AShooterCharacter>(GetOwner()) : OwnerCharacter;
+	if (OwnerCharacter)
+	{
+		OwnerCharacter->UpdateHUDWeaponAmmo(Ammo);
+	}
 }
 
 void AWeapon::ShowPickupWidget(bool bShowWidget)
@@ -177,4 +200,5 @@ void AWeapon::Dropped()
 	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
 	WeaponMesh->DetachFromComponent(DetachRules);
 	SetOwner(nullptr);
+	OwnerCharacter = nullptr;
 }

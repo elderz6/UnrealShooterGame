@@ -21,6 +21,8 @@ public:
 	void SetMaxHealthText(int32 Value);
 	void SetScoreText(float Score);
 	void SetDefeatText(int32 Defeat);
+	void SetAmmoText(int32 Ammo);
+	void SetCarriedAmmoText(int32 Ammo);
 
 
 	UPROPERTY(meta = (BindWidget))
@@ -40,6 +42,9 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* AmmoAmount_Text;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* CarriedAmmoAmount_Text;
 
 protected:
 	virtual void NativeOnInitialized() override;

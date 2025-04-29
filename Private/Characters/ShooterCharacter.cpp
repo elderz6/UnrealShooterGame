@@ -84,6 +84,12 @@ void AShooterCharacter::BeginPlay()
 			Attributes->GetHealth()
 		);
 		CharacterOverlay = ShooterPlayerController->GetShooterHUD()->CharacterOverlay;
+
+		if (!IsWeaponEquipped())
+		{
+			UpdateHUDWeaponAmmo(0);
+			UpdateHUDCarriedAmmo(0);
+		}
 	}
 	if (HasAuthority())
 	{
@@ -137,6 +143,7 @@ void AShooterCharacter::PossessedBy(AController* PlayerController)
 		);
 	}
 	UpdateHUDHealth();
+	UpdateHUDWeaponAmmo(0);
 }
 
 void AShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
@@ -184,9 +191,27 @@ void AShooterCharacter::UpdateHUDDefeat(int32 Defeat)
 	}
 }
 
+void AShooterCharacter::UpdateHUDWeaponAmmo(int32 Ammo)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetAmmoText(Ammo);
+	}
+}
+
+void AShooterCharacter::UpdateHUDCarriedAmmo(int32 Ammo)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetCarriedAmmoText(Ammo);
+	}
+}
+
 void AShooterCharacter::Eliminated()
 {
 	MulticastEliminated();
+	if (CharacterOverlay) UpdateHUDWeaponAmmo(0);
+
 	GetWorldTimerManager().SetTimer(RespawnTimer, this, 
 		&ThisClass::RespawnTimerFinished, RespawnDelay);
 

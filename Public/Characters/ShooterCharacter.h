@@ -43,6 +43,8 @@ public:
 	void UpdateHUDHealth();
 	void UpdateHUDScore(float Score);
 	void UpdateHUDDefeat(int32 Defeat);
+	void UpdateHUDWeaponAmmo(int32 Ammo);
+	void UpdateHUDCarriedAmmo(int32 Ammo);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastEliminated();

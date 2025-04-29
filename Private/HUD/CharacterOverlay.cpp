@@ -44,6 +44,24 @@ void UCharacterOverlay::SetDefeatText(int32 Defeat)
 	}
 }
 
+void UCharacterOverlay::SetAmmoText(int32 Ammo)
+{
+	if (AmmoAmount_Text)
+	{
+		FText Text = FText::FromString(FString::Printf(TEXT("%d"), Ammo));
+		AmmoAmount_Text->SetText(Text);
+	}
+}
+
+void UCharacterOverlay::SetCarriedAmmoText(int32 Ammo)
+{
+	if (CarriedAmmoAmount_Text)
+	{
+		FText Text = FText::FromString(FString::Printf(TEXT("%d"), Ammo));
+		CarriedAmmoAmount_Text->SetText(Text);
+	}
+}
+
 void UCharacterOverlay::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
