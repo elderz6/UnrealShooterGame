@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Weapons/Weapon.h"
+#include "CoopShooter/ShooterTypes/CombatState.h"
 
 void UShooterAnimInstance::NativeInitializeAnimation()
 {
@@ -99,4 +100,6 @@ void UShooterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		//GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Emerald, 
 		//	FString::Printf(TEXT("Adjust P = %.2f Y = %.2f R = %.2f"), RotationDiff.Pitch, RotationDiff.Yaw, RotationDiff.Roll));
 	}
+
+	bUseFABRIK = ShooterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
 }

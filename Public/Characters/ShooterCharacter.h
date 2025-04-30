@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "CoopShooter/ShooterTypes/TurningInPlace.h"
+#include "CoopShooter/ShooterTypes/CombatState.h"
 #include "Interfaces/PickupInterface.h"
 #include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "Interfaces/HitInterface.h"
@@ -55,11 +56,13 @@ public:
 	void PlayShootMontage(bool bAiming);
 	void PlayHitReactMontage();
 	void PlayElimMontage();
+	void PlayReloadMontage();
 
 	bool IsWeaponEquipped();
 	bool IsAiming();
 	AWeapon* GetEquippedWeapon();
 	FVector GetHitTarget() const;
+	ECombatState GetCombatState();
 	FORCEINLINE float GetAO_Yaw() { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() { return AO_Pitch; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() { return TurningInPlace; }
@@ -102,6 +105,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ShootAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ReloadAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void CrouchButtonPressed();
@@ -110,7 +116,7 @@ protected:
 	void AimButtonReleased();
 	void ShootButtonPressed();
 	void ShootButtonReleased();
-
+	void ReloadButtonPressed();
 	void AimOffset(float DeltaTime);
 
 
@@ -127,7 +133,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* OverlappingWeapon;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UCombatComponent* Combat;
 
 	UPROPERTY(VisibleAnywhere)
@@ -154,6 +160,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	UAnimMontage* ElimMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	UAnimMontage* ReloadMontage;
 
 	UPROPERTY(EditAnywhere)
 	float CameraThreshold = 200.f;

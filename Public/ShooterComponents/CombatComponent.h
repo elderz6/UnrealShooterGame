@@ -4,6 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "HUD/ShooterHUD.h"
 #include "Weapons/WeaponTypes.h"
+#include "CoopShooter/ShooterTypes/CombatState.h"
 #include "CombatComponent.generated.h"
 
 #define TRACE_LENGTH 10000.f
@@ -30,6 +31,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void EquipWeapon(AWeapon* WeaponToEquip);
+	void Reload();
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 
 protected:
 	virtual void BeginPlay() override;
@@ -65,6 +69,9 @@ protected:
 
 	UFUNCTION(Server, Unreliable)
 	void ServerHitTarget(const FVector_NetQuantize& TraceHitTarget);
+
+	UFUNCTION(Server, Reliable)
+	void ServerReload();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void MultiCastHitTarget(const FVector_NetQuantize& TraceHitTarget);
@@ -134,6 +141,9 @@ private:
 
 
 	//
+	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
+	ECombatState CombatState = ECombatState::ECS_Unoccupied;
+
 	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
 	int32 CarriedAmmo;
 
@@ -144,7 +154,12 @@ private:
 
 	void InitializeCarriedAmmo();
 
+	void HandleReload();
+
 	UFUNCTION()
 	void OnRep_CarriedAmmo();
+
+	UFUNCTION()
+	void OnRep_CombatState();
 
 };

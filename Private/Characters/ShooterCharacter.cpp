@@ -290,7 +290,7 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &ThisClass::AimButtonReleased);
 		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, this, &ThisClass::ShootButtonPressed);
 		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, this, &ThisClass::ShootButtonReleased);
-		//EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ThisClass::Attack);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ThisClass::ReloadButtonPressed);
 		//EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &ThisClass::Dodge);
 	}
 }
@@ -372,6 +372,11 @@ void AShooterCharacter::ShootButtonReleased()
 {
 	if (Combat)
 		Combat->ShootButtonPressed(false);
+}
+
+void AShooterCharacter::ReloadButtonPressed()
+{
+	if (Combat) Combat->Reload();
 }
 
 /*
@@ -538,6 +543,27 @@ void AShooterCharacter::PlayElimMontage()
 	}
 }
 
+void AShooterCharacter::PlayReloadMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ReloadMontage)
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+
+		FName SectionName;
+
+		switch (Combat->EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssaultRifle:
+			SectionName = FName("Rifle");
+		default:
+			break;
+		}
+
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
 /*
 ////////////////////////Getters/////////////////////
 */
@@ -562,4 +588,10 @@ FVector AShooterCharacter::GetHitTarget() const
 {
 	if(Combat == nullptr) return FVector();
 	return Combat->HitTarget;
+}
+
+ECombatState AShooterCharacter::GetCombatState()
+{
+	if (Combat == nullptr) return ECombatState::ECS_MAX;
+	return Combat->CombatState;
 }

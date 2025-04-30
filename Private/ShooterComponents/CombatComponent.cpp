@@ -43,6 +43,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, bAiming);
 	DOREPLIFETIME(UCombatComponent, HitTarget);
+	DOREPLIFETIME(UCombatComponent, CombatState);
 	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
 }
 
@@ -95,6 +96,21 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	bAutomatic = EquippedWeapon->bAutomatic;
 	FireDelay = EquippedWeapon->FireDelay;
 
+}
+
+void UCombatComponent::Reload()
+{
+	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
+	{
+		ServerReload();
+	}
+}
+
+void UCombatComponent::FinishReloading()
+{
+	if (Character == nullptr) return;
+	if(Character->HasAuthority())
+		CombatState = ECombatState::ECS_Unoccupied;
 }
 
 
@@ -232,8 +248,6 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	}
 }
 
-
-
 void UCombatComponent::InterpFOV(float DeltaTime)
 {
 	if (bAiming)
@@ -273,6 +287,12 @@ void UCombatComponent::InitializeCarriedAmmo()
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle, 30);
 }
 
+void UCombatComponent::HandleReload()
+{
+	Character->PlayReloadMontage();
+
+}
+
 /*
 ///////////////////////////////////////////////////////////////
 /////////////////////Server And Replications//////////////////
@@ -280,6 +300,22 @@ void UCombatComponent::InitializeCarriedAmmo()
 void UCombatComponent::OnRep_CarriedAmmo()
 {
 	Character->UpdateHUDCarriedAmmo(CarriedAmmo);
+}
+
+void UCombatComponent::OnRep_CombatState()
+{
+	switch (CombatState)
+	{
+	case ECombatState::ECS_Unoccupied:
+		break;
+	case ECombatState::ECS_Reloading:
+		HandleReload();
+		break;
+	case ECombatState::ECS_MAX:
+		break;
+	default:
+		break;
+	}
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -293,6 +329,14 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 		Character->bUseControllerRotationYaw = true;
 	}
+}
+
+void UCombatComponent::ServerReload_Implementation()
+{
+	if (Character == nullptr) return;
+
+	CombatState = ECombatState::ECS_Reloading;
+	HandleReload();
 }
 
 void UCombatComponent::ServerHitTarget_Implementation(const FVector_NetQuantize& TraceHitTarget)
