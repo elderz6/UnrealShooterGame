@@ -31,6 +31,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void EquipWeapon(AWeapon* WeaponToEquip);
+	void PlayEquipSound();
 	void Reload();
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
@@ -156,10 +157,14 @@ private:
 
 	void HandleReload();
 
+	int32 AmountToReload();
+
 	UFUNCTION()
 	void OnRep_CarriedAmmo();
 
 	UFUNCTION()
 	void OnRep_CombatState();
+
+	void UpdateAmmoValues();
 
 };

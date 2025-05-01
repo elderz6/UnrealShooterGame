@@ -96,6 +96,12 @@ void AWeapon::Fire(const FVector& HitTarget)
 	SpendRound();
 }
 
+void AWeapon::AddAmmo(int32 Amount)
+{
+	Ammo = FMath::Clamp(Ammo - Amount, 0, MagCapacity);
+	CallUpdateHUDAmmo();
+}
+
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor->ActorHasTag("ShooterCharacter"))

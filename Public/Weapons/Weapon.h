@@ -21,6 +21,7 @@ class UAnimationAsset;
 class ABulletCasing;
 class UTexture2D;
 class AShooterCharacter;
+class USoundCue;
 UCLASS()
 class COOPSHOOTER_API AWeapon : public AActor
 {
@@ -33,12 +34,12 @@ public:
 	virtual void OnRep_Owner() override;
 
 	virtual void Fire(const FVector& HitTarget);
+	void AddAmmo(int32 Amount);
 
 	void ShowPickupWidget(bool bShowWidget);
 	void SetWeaponState(EWeaponState State);
 
 	void CallUpdateHUDAmmo();
-
 	void Dropped();
 
 	UPROPERTY(EditAnywhere, Category = "Crosshairs")
@@ -55,6 +56,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Crosshairs")
 	UTexture2D* CrosshairsBottom;
+
+	UPROPERTY(EditAnywhere)
+	USoundCue* EquipSound;
+
+	UPROPERTY(EditAnywhere)
+	USoundCue* EmptySound;
 
 	//Aim FOV
 	float DefaultFOV = 90.f;
@@ -74,10 +81,13 @@ public:
 	float FireDelay = 0.15f;
 
 
+
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	FORCEINLINE bool IsEmpty() const { return Ammo <= 0; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
+	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 
 protected:
 	virtual void BeginPlay() override;
