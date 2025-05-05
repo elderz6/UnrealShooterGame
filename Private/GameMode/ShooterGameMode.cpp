@@ -5,6 +5,44 @@
 #include "GameFramework/PlayerStart.h"
 #include "PlayerStates/ShooterPlayerState.h"
 
+AShooterGameMode::AShooterGameMode()
+{
+	bDelayedStart = true;
+}
+
+void AShooterGameMode::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (MatchState == MatchState::WaitingToStart)
+	{
+		CountdownTime = WarmupTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+
+		if (CountdownTime <= 0.f) StartMatch();
+	}
+}
+
+void AShooterGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+	LevelStartingTime = GetWorld()->GetTimeSeconds();
+}
+
+void AShooterGameMode::OnMatchStateSet()
+{
+	Super::OnMatchStateSet();
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		AShooterPlayerController* ShooterPlayer = Cast< AShooterPlayerController>(*It);
+
+		if (ShooterPlayer)
+		{
+			ShooterPlayer->OnMatchStateSet(MatchState);
+		}
+	}
+}
+
 void AShooterGameMode::PlayerEliminated(AShooterCharacter* ElimCharacter, AShooterPlayerController* VictimController, AShooterPlayerController* AttackerController)
 {
 	AShooterPlayerState* Attacker = Cast<AShooterPlayerState>(AttackerController->PlayerState);
@@ -42,3 +80,5 @@ void AShooterGameMode::RequestRespawn(ACharacter* ElimCharacter, AController* El
 		RestartPlayerAtPlayerStart(ElimController, SpawnPoints[Selection]);
 	}
 }
+
+

@@ -69,28 +69,8 @@ void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	ShooterPlayerController = Cast<AShooterPlayerController>(GetController());
-	if (ShooterPlayerController)
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>
-			(ShooterPlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(ShooterMappingContext, 0);
-		}
-		ShooterPlayerController->InitializePlayerOverlay(
-			Attributes->GetHealthPercent(),
-			Attributes->GetMaxHealth(),
-			Attributes->GetHealth()
-		);
-		CharacterOverlay = ShooterPlayerController->GetShooterHUD()->CharacterOverlay;
+	InitializeCharacter();
 
-		if (!IsWeaponEquipped())
-		{
-			UpdateHUDWeaponAmmo(0);
-			UpdateHUDCarriedAmmo(0);
-		}
-	}
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
@@ -99,10 +79,39 @@ void AShooterCharacter::BeginPlay()
 	Tags.Add(FName("ShooterCharacter"));
 }
 
+void AShooterCharacter::InitializeCharacter()
+{
+	ShooterPlayerController = ShooterPlayerController == nullptr ? Cast<AShooterPlayerController>(GetController()) : ShooterPlayerController;
+	
+	if (ShooterPlayerController)
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(ShooterPlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(ShooterMappingContext, 0);
+		}
+		ShooterPlayerController->InitializePlayerOverlay(
+			Attributes->GetHealthPercent(),
+			Attributes->GetMaxHealth(),
+			Attributes->GetHealth()
+		);
+		if(ShooterPlayerController->GetShooterHUD())
+			CharacterOverlay = ShooterPlayerController->GetShooterHUD()->CharacterOverlay;
+		bControllerSetup = true;
+	}
+	if (!IsWeaponEquipped())
+	{
+		UpdateHUDWeaponAmmo(0);
+		UpdateHUDCarriedAmmo(0);
+	}
+
+}
+
 
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (!bControllerSetup) InitializeCharacter();
 	AimOffset(DeltaTime);
 	HideCharacterIfCameraClose();
 }
@@ -124,26 +133,23 @@ void AShooterCharacter::GetHit(const FVector& ImpactPoint, AActor* Hitter)
 	PlayHitReactMontage();
 }
 
-void AShooterCharacter::PossessedBy(AController* PlayerController)
+void AShooterCharacter::PossessedBy(AController* NewController)
 {
-	Super::PossessedBy(PlayerController);
+	Super::PossessedBy(NewController);
 
-	AShooterPlayerController* ShooterController = Cast<AShooterPlayerController>(PlayerController);
+	AShooterPlayerController* ShooterController = Cast<AShooterPlayerController>(NewController);
 	if (ShooterController)
 	{
-		ShooterPlayerController = ShooterController;
-
-		if(ShooterController->GetShooterHUD() && ShooterController->GetShooterHUD()->CharacterOverlay)
-			CharacterOverlay = ShooterController->GetShooterHUD()->CharacterOverlay;
-
-		ShooterController->InitializePlayerOverlay(
-			Attributes->GetHealthPercent(),
-			Attributes->GetMaxHealth(),
-			Attributes->GetHealth()
-		);
+		InitializeCharacter();
 	}
 	UpdateHUDHealth();
 	UpdateHUDWeaponAmmo(0);
+
+}
+
+void AShooterCharacter::Restart()
+{
+	Super::Restart();
 }
 
 void AShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
@@ -478,6 +484,7 @@ void AShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 		OverlappingWeapon->ShowPickupWidget(true);
 }
 
+
 void AShooterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if(OverlappingWeapon)
@@ -492,6 +499,7 @@ void AShooterCharacter::OnRep_PlayerState()
 	UpdateHUDScore(GetPlayerState()->GetScore());
 	
 }
+
 
 void AShooterCharacter::ServerEquipButtonPressed_Implementation()
 {

@@ -62,6 +62,18 @@ void UCharacterOverlay::SetCarriedAmmoText(int32 Ammo)
 	}
 }
 
+void UCharacterOverlay::SetMatchCountdownText(int32 CountdownTime)
+{
+	if (MatchCountdown_Text)
+	{
+		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
+		int32 Seconds = CountdownTime - Minutes * 60;
+
+		FText Text = FText::FromString(FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds));
+		MatchCountdown_Text->SetText(Text);
+	}
+}
+
 void UCharacterOverlay::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();

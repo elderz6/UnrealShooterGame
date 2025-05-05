@@ -35,7 +35,8 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	virtual void GetHit(const FVector& ImpactPoint, AActor* Hitter) override;
-	virtual void PossessedBy(AController* PlayerController)override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void Restart() override;
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
@@ -72,6 +73,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	void InitializeCharacter();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* ShooterMappingContext;
@@ -121,6 +124,8 @@ protected:
 
 
 private:
+	bool bControllerSetup = false;
+
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	USpringArmComponent* CameraBoom;
 
@@ -201,6 +206,7 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
+
 
 	UFUNCTION()	
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);

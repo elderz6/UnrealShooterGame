@@ -23,6 +23,7 @@ public:
 	void SetDefeatText(int32 Defeat);
 	void SetAmmoText(int32 Ammo);
 	void SetCarriedAmmoText(int32 Ammo);
+	void SetMatchCountdownText(int32 CountdownTime);
 
 
 	UPROPERTY(meta = (BindWidget))
@@ -45,6 +46,9 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* CarriedAmmoAmount_Text;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* MatchCountdown_Text;
 
 protected:
 	virtual void NativeOnInitialized() override;
