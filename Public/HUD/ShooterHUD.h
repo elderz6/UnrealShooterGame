@@ -45,12 +45,12 @@ public:
 
 	virtual void DrawHUD() override;
 	bool TexturesAreValid();
+	void AddCharacterOverlay();
 
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& Package) { HUDPackage = Package; }
 
 protected:
 	virtual void BeginPlay() override;
-	void AddCharacterOverlay();
 	
 private:
 	UPROPERTY()

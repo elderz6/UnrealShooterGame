@@ -19,15 +19,25 @@ public:
 	void InitializePlayerOverlay(float Percent, float MaxHealth, float CurrentHealth);
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void OnMatchStateSet(FName State);
-	
+
+	void AddOverlayOnMatchInProgress();
 	void UpdateHUDMatchCountdown(int32 CountdownTime);
+	void UpdateHUDHealth(float Percent, int32 Value);
+	void UpdateHUDScore(float Score);
+	void UpdateHUDDefeat(int32 Defeat);
+	void UpdateHUDWeaponAmmo(int32 Ammo);
+	void UpdateHUDCarriedAmmo(int32 Ammo);
 
 	FORCEINLINE AShooterHUD* GetShooterHUD() { return ShooterHUD; }
 
 protected:
 	virtual void BeginPlay() override;
+	void PollInit();
 
 private:
+	UPROPERTY()
+	class UCharacterOverlay* CharacterOverlay;
+
 	UPROPERTY()
 	AShooterHUD* ShooterHUD;
 
@@ -58,5 +68,15 @@ private:
 	//Report Server time to client
 	UFUNCTION(Client, Reliable)
 	void ClientReportServerTime(float ClientRequestTime, float RequestReceivedTime);
+
+	//Cached values for polled initialization
+	float HealthPercent;
+	float MaxHealthText;
+	float CurrentHealthText;
+	float ScoreText;
+	int32 DefeatText;
+	int32 AmmoText;
+	int32 CarriedAmmoText;
+
 
 };

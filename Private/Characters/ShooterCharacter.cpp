@@ -174,42 +174,41 @@ void AShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 
 void AShooterCharacter::UpdateHUDHealth()
 {
-	if (CharacterOverlay)
+	if (ShooterPlayerController)
 	{
-		CharacterOverlay->SetHealthBarPercent(Attributes->GetHealthPercent());
-		CharacterOverlay->SetCurrentHealthText(Attributes->GetHealth());
+		ShooterPlayerController->UpdateHUDHealth(Attributes->GetHealthPercent(), Attributes->GetHealth());
 	}
 }
 
 void AShooterCharacter::UpdateHUDScore(float Score)
 {
-	if (CharacterOverlay)
+	if (ShooterPlayerController)
 	{
-		CharacterOverlay->SetScoreText(Score);
+		ShooterPlayerController->UpdateHUDScore(Score);
 	}
 }
 
 void AShooterCharacter::UpdateHUDDefeat(int32 Defeat)
 {
-	if (CharacterOverlay)
+	if (ShooterPlayerController)
 	{
-		CharacterOverlay->SetDefeatText(Defeat);
+		ShooterPlayerController->UpdateHUDDefeat(Defeat);
 	}
 }
 
 void AShooterCharacter::UpdateHUDWeaponAmmo(int32 Ammo)
 {
-	if (CharacterOverlay)
+	if (ShooterPlayerController)
 	{
-		CharacterOverlay->SetAmmoText(Ammo);
+		ShooterPlayerController->UpdateHUDWeaponAmmo(Ammo);
 	}
 }
 
 void AShooterCharacter::UpdateHUDCarriedAmmo(int32 Ammo)
 {
-	if (CharacterOverlay)
+	if (ShooterPlayerController)
 	{
-		CharacterOverlay->SetCarriedAmmoText(Ammo);
+		ShooterPlayerController->UpdateHUDCarriedAmmo(Ammo);
 	}
 }
 
